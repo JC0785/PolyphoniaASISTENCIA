@@ -521,7 +521,18 @@ function doReport(date){
   ctx.font='300 14px Montserrat,sans-serif';ctx.fillStyle='#1a1a1a';ctx.fillText('asistencia',cx,116);
   ctx.strokeStyle='rgba(140,90,20,.2)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(cx-85,132);ctx.lineTo(cx+85,132);ctx.stroke();
   var url=cv.toDataURL('image/png',1.0);
-  var a=document.createElement('a');a.download='polyphonia-asistencia-'+date+'.png';a.href=url;document.body.appendChild(a);a.click();document.body.removeChild(a);
+  var isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  if(isIOS){
+    var w=window.open();
+    if(w){
+      w.document.write('<html><head><title>Informe Polyphonia</title></head><body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="'+url+'" style="max-width:100%;height:auto" alt="Informe"><p style="position:fixed;bottom:16px;left:0;right:0;text-align:center;color:#fff;font-family:sans-serif;font-size:14px">Manten\u00e9 presionada la imagen y toc\u00e1 "Guardar imagen"</p></body></html>');
+      w.document.close();
+    }else{
+      alert('Habilit\u00e1 las ventanas emergentes para exportar la imagen, o toc\u00e1 y manten\u00e9 presionado este bot\u00f3n de nuevo.');
+    }
+  }else{
+    var a=document.createElement('a');a.download='polyphonia-asistencia-'+date+'.png';a.href=url;document.body.appendChild(a);a.click();document.body.removeChild(a);
+  }
 }
 
 // ── ADD / DELETE ──
