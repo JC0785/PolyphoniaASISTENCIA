@@ -174,7 +174,9 @@ var VNAMES={Soprano:'Sopranos',Contralto:'Contraltos',Tenor:'Tenores',Bajo:'Bajo
 
 var members=JSON.parse(localStorage.getItem('pm6')||'null')||BASE_MEMBERS.slice();
 var att=JSON.parse(localStorage.getItem('pa6')||'{}');
-var view='a',selDate=new Date().toISOString().split('T')[0],vf='all';
+function today(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function clean(d){if(att[d]&&!Object.keys(att[d]).length)delete att[d];}
+var view='a',selDate=today(),vf='all';
 var pph='',delId=null,savedTimer=null;
 
 function save(){localStorage.setItem('pm6',JSON.stringify(members));localStorage.setItem('pa6',JSON.stringify(att));}
@@ -187,6 +189,7 @@ function setStatus(mid,status){
   if(!att[selDate])att[selDate]={};
   if(att[selDate][mid]===status)delete att[selDate][mid];
   else att[selDate][mid]=status;
+  clean(selDate);
   save();
   // Update card in place without full re-render
   refreshCard(mid);
@@ -391,9 +394,9 @@ function makeDirectorCard(dd){
     btn.addEventListener('click',function(){
       if(!att[selDate])att[selDate]={};
       if(att[selDate]['director']===b.val)delete att[selDate]['director'];else att[selDate]['director']=b.val;
-      save();
-      card.className='mc director-card'+(att[selDate]['director']?' '+att[selDate]['director']:'');
-      btns.querySelectorAll('.mbt').forEach(function(x,i){x.className='mbt '+bdata[i].base+(att[selDate]['director']===bdata[i].val?' sel':'');});
+      var dirSt=att[selDate]['director'];clean(selDate);save();
+      card.className='mc director-card'+(dirSt?' '+dirSt:'');
+      btns.querySelectorAll('.mbt').forEach(function(x,i){x.className='mbt '+bdata[i].base+(dirSt===bdata[i].val?' sel':'');});
       var si=document.getElementById('si');if(si){si.style.opacity='1';clearTimeout(savedTimer);savedTimer=setTimeout(function(){si.style.opacity='0';},1400);}
     });
     btns.appendChild(btn);
@@ -404,7 +407,7 @@ function makeDirectorCard(dd){
 
 // ── HISTORY ──
 function renderH(){
-  var dates=Object.keys(att).sort(function(a,b){return b.localeCompare(a);});
+  var dates=Object.keys(att).filter(function(d){return Object.keys(att[d]||{}).length;}).sort(function(a,b){return b.localeCompare(a);});
   var app=document.getElementById('app');
   if(!dates.length){app.innerHTML='<div class="cp"><div class="st">Historial</div><div class="em">Sin ensayos registrados</div></div>';return;}
   var frag=document.createDocumentFragment();
@@ -465,7 +468,7 @@ function renderS(){
 
 // ── INFORME ──
 function renderR(){
-  var dates=Object.keys(att).sort(function(a,b){return b.localeCompare(a);});
+  var dates=Object.keys(att).filter(function(d){return Object.keys(att[d]||{}).length;}).sort(function(a,b){return b.localeCompare(a);});
   var app=document.getElementById('app');
   var frag=document.createDocumentFragment();
   var wrap=document.createElement('div');wrap.className='cp';
@@ -475,7 +478,8 @@ function renderR(){
   var fl2=document.createElement('div');fl2.className='fl';
   var lbl=document.createElement('label');lbl.style.cssText='display:block;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--gd);margin-bottom:5px';lbl.textContent='Seleccionar ensayo';
   var sel=document.createElement('select');sel.id='rep-date';sel.style.cssText='width:100%;padding:9px 10px;border-radius:7px;border:1px solid var(--br);background:rgba(255,255,255,.04);color:var(--tx);font-family:var(--fn);font-size:13px;outline:none;';
-  dates.forEach(function(d){var o=document.createElement('option');o.value=d;o.textContent=fdate(d);sel.appendChild(o);});
+  dates.forEach(function(d){var o=document.createElement('option');o.value=d;o.textContent=fdate(d);if(d===selDate)o.selected=true;sel.appendChild(o);});
+  sel.addEventListener('change',function(){selDate=this.value;});
   fl2.appendChild(lbl);fl2.appendChild(sel);wrap.appendChild(fl2);
   var btn=document.createElement('div');btn.className='eo';btn.style.marginTop='20px';
   btn.innerHTML='<span class="ic">&#128202;</span><div><strong>Exportar PNG 1080\u00d71080</strong><span>Fondo crema \u00b7 Dorado y negro</span></div>';
